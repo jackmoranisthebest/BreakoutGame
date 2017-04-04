@@ -18,9 +18,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var brickCount = 0
     var count = 0
     var score = 0
+    var lives = 3
     var removedBricks = 0
-        
-        
+    let livesLabel = SKLabelNode(fontNamed:"System")
+    let scoreLabel = SKLabelNode(fontNamed:"System")
+    
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -31,6 +33,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         makeLoseZone()
         ball.physicsBody?.isDynamic = true
         ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
+        
+        //Labels
+        //Score
+        scoreLabel.fontColor = UIColor.white
+        scoreLabel.text = String(score)
+        scoreLabel.fontSize = 17
+        //scoreLabel.position = CGPoint(x: frame.minX + 10, y: frame.maxY - 10)
+        scoreLabel.position = CGPoint(x: frame.minX + 15, y: frame.maxY - 20)
+        scoreLabel.zPosition = 1
+        addChild(scoreLabel)
+
+
+        //Lives
+        livesLabel.fontColor = UIColor.white
+        livesLabel.text = String(lives)
+        livesLabel.fontSize = 17
+        livesLabel.position = CGPoint(x: frame.maxX - 15, y: frame.maxY - 20)
+        addChild(livesLabel)
+        print(lives)
     }
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
@@ -50,31 +71,49 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         brickCount = brickArray.count
         for brick in brickArray {
             if contact.bodyA.node == brick || contact.bodyB.node == brick {
-                score += 1
-                
                 if brick.color == UIColor.blue {
                     brick.color = UIColor.green
+                    score += 50
                 }
                 else if brick.color == UIColor.green {
                     brick.color = UIColor.purple
+                    score += 100
                 }
             
-            else if brick.color == UIColor.purple{
-                brick.removeFromParent()
-                removedBricks += 1
-                if removedBricks == brickCount {
-                    print("You Win")
+                else if brick.color == UIColor.purple{
+                    brick.removeFromParent()
+                    score += 150
+                    lives += 1
+                    removedBricks += 1
+                    if removedBricks == brickCount {
+                        print("You Win")
+                        lives = 3
                     }
                 
                 }
             }
-            if contact.bodyA.node?.name == "loseZone" || contact.bodyB.node?.name == "loseZone"
-            {
+        }
+        if contact.bodyA.node?.name == "loseZone" || contact.bodyB.node?.name == "loseZone"
+        {
+            ball.removeFromParent()
+            lives -= 1
+            print(lives)
+            if(lives > 0)   {
+                makeBall()
+                ball.physicsBody?.isDynamic = true
+                ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 3))
+            }
+            if(lives == 0)  {
                 print("You Lose!")
                 ball.removeFromParent()
+                score = 0
             }
         }
+        scoreLabel.text = String(score)
+        livesLabel.text = String(lives)
+
     }
+
  
     func createBackground() {
         let stars = SKTexture(imageNamed: "stars")
